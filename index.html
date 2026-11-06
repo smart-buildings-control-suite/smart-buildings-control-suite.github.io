@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Smart Buildings Control Suite</title>
+<meta name="description" content="A diverse open source benchmark to evaluate and scale HVAC control policies for sustainability. NeurIPS 2026, Evaluations and Datasets Track.">
+<meta property="og:title" content="The Smart Buildings Control Suite">
+<meta property="og:description" content="Real-world data from 11 buildings, a lightweight calibrated simulator, and a physics-informed neural network building model. NeurIPS 2026.">
+<style>
+  :root {
+    --text: #1d1d1f; --muted: #5f6368; --accent: #1a7f5a; --accent-dark: #12603f;
+    --bg: #ffffff; --soft: #f5f7f6; --border: #e3e6e4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text); background: var(--bg); line-height: 1.6; font-size: 17px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  header { text-align: center; padding: 64px 0 32px; }
+  .venue { display: inline-block; font-size: 14px; font-weight: 600; color: var(--accent);
+    background: #e8f4ee; padding: 4px 12px; border-radius: 999px; margin-bottom: 20px; }
+  h1 { font-size: 40px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.5px; }
+  .subtitle { font-size: 21px; color: var(--muted); margin: 0 0 28px; }
+  .authors { font-size: 17px; margin-bottom: 6px; }
+  .authors a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); }
+  .affils { font-size: 14px; color: var(--muted); }
+  .buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 32px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 999px;
+    background: var(--text); color: #fff; text-decoration: none; font-weight: 600; font-size: 15px; }
+  .btn:hover { background: #3a3a3c; }
+  .btn.todo { background: #c7c7cc; pointer-events: none; }
+  section { padding: 36px 0; border-top: 1px solid var(--border); }
+  h2 { font-size: 26px; margin: 0 0 16px; }
+  .abstract { text-align: justify; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 8px 0 0; }
+  .stat { background: var(--soft); border-radius: 12px; padding: 18px; text-align: center; }
+  .stat b { display: block; font-size: 30px; color: var(--accent); }
+  .stat span { font-size: 14px; color: var(--muted); }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .card h3 { margin: 0 0 8px; font-size: 18px; }
+  .card p { margin: 0; font-size: 15px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { font-weight: 600; background: var(--soft); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  pre { background: var(--soft); padding: 18px; border-radius: 10px; overflow-x: auto; font-size: 13.5px; line-height: 1.5; }
+  a { color: var(--accent); }
+  a:hover { color: var(--accent-dark); }
+  footer { text-align: center; color: var(--muted); font-size: 14px; padding: 32px 0 48px; border-top: 1px solid var(--border); }
+  @media (max-width: 720px) {
+    h1 { font-size: 30px; } .subtitle { font-size: 18px; }
+    .stats { grid-template-columns: repeat(2, 1fr); } .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="venue">NeurIPS 2026 · Evaluations and Datasets Track</div>
+  <h1>The Smart Buildings Control Suite</h1>
+  <p class="subtitle">A Diverse Open Source Benchmark to Evaluate and Scale HVAC Control Policies for Sustainability</p>
+
+  <div class="authors">
+    Judah Goldfeder<sup>1,4,5</sup>,
+    Victoria Dean<sup>2</sup>,
+    Zixin Jiang<sup>3</sup>,
+    Xuezheng Wang<sup>3</sup>,
+    Bing Dong<sup>3</sup>,
+    Hod Lipson<sup>1,5</sup>,
+    John Sipple<sup>4</sup>
+  </div>
+  <div class="affils">
+    <sup>1</sup>Columbia University &nbsp; <sup>2</sup>Princeton University &nbsp; <sup>3</sup>Syracuse University &nbsp;
+    <sup>4</sup>Google Research &nbsp; <sup>5</sup>NSF AI Institute in Dynamic Systems
+  </div>
+
+  <div class="buttons">
+    <a class="btn" href="paper.pdf">📄 Paper</a>
+    <a class="btn" href="https://github.com/google/sbsim">💻 Code</a>
+    <!-- TODO: replace href with the Kaggle dataset URL and remove class "todo" -->
+    <a class="btn todo" href="#">📊 Data (Kaggle)</a>
+    <a class="btn" href="#bibtex">📚 BibTeX</a>
+  </div>
+</header>
+
+<section>
+  <h2>Abstract</h2>
+  <p class="abstract">
+    Commercial buildings account for 17% of U.S. carbon emissions, with roughly half of that from Heating,
+    Ventilation, and Air Conditioning (HVAC). HVAC devices form a complex thermodynamic system, and while model
+    predictive control and reinforcement learning have been used to optimize control policies, scaling to thousands
+    of buildings remains a significant unsolved challenge. Most current approaches are over-optimized for specific
+    buildings and rely on proprietary data or hard-to-configure simulators. We present the Smart Buildings Control
+    Suite, the first open source interactive HVAC control benchmark with a focus on solutions that generalize across
+    buildings. It has 3 components: real-world data from 11 buildings over 6 years, a lightweight data-driven
+    simulator, and a modular Physically Informed Neural Network (PINN) building model. The buildings span multiple
+    climates, management systems, and sizes, and both the simulator and PINN easily transfer to new buildings,
+    ensuring solutions using this benchmark are robust to these factors and only reliant on fully scalable building
+    models. This represents a major step towards scaling HVAC optimization from the lab to buildings everywhere. To
+    facilitate use, our benchmark is compatible with the Gym standard, and our data is on Kaggle.
+  </p>
+  <div class="stats">
+    <div class="stat"><b>11</b><span>real buildings</span></div>
+    <div class="stat"><b>6 yrs</b><span>of HVAC data</span></div>
+    <div class="stat"><b>3</b><span>building management systems</span></div>
+    <div class="stat"><b>1,478</b><span>HVAC devices</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>What's in the suite</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>Real-world data</h3>
+      <p>Observations, actions and rewards from 11 commercial buildings in California, New York and Massachusetts,
+        in a single RL-ready format.</p>
+    </div>
+    <div class="card">
+      <h3>Calibrated simulator</h3>
+      <p>A lightweight, GPU-accelerated finite-difference thermal simulator. Configured from floor plans in under
+        3 hours and calibrated to real data (0.57&nbsp;°C mean error over a 24-hour validation day).</p>
+    </div>
+    <div class="card">
+      <h3>PINN building model</h3>
+      <p>A modular, physics-informed neural network that respects physical laws, e.g. more cooling always lowers
+        temperature. 0.3&nbsp;°C MAE on 24-hour predictions.</p>
+    </div>
+  </div>
+  <p>
+    Everything is compatible with the OpenAI Gym standard, so agents can be trained offline on real data or
+    interactively in the simulator. A floorplan generator produces unlimited synthetic buildings for testing
+    how policies transfer to buildings they have never seen.
+  </p>
+</section>
+
+<section>
+  <h2>Buildings</h2>
+  <table>
+    <thead>
+      <tr><th>Building</th><th class="num">Sq. ft.</th><th class="num">Floors</th><th class="num">Devices</th><th>Location</th><th>Duration</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>SB1</td><td class="num">93,858</td><td class="num">2</td><td class="num">173</td><td>Mountain View, CA</td><td>4 years</td></tr>
+      <tr><td>SB2</td><td class="num">62,613</td><td class="num">1</td><td class="num">144</td><td>Mountain View, CA</td><td>4 years</td></tr>
+      <tr><td>SB3</td><td class="num">118,086</td><td class="num">3</td><td class="num">281</td><td>Mountain View, CA</td><td>4 years</td></tr>
+      <tr><td>SB4</td><td class="num">50,852</td><td class="num">6</td><td class="num">128</td><td>Syracuse, NY</td><td>2 years</td></tr>
+      <tr><td>SB5</td><td class="num">5,500</td><td class="num">2</td><td class="num">11</td><td>Syracuse, NY</td><td>2 years</td></tr>
+      <tr><td>SB6</td><td class="num">5,120</td><td class="num">1</td><td class="num">6</td><td>Syracuse, NY</td><td>2 years</td></tr>
+      <tr><td>SB7</td><td class="num">76,000</td><td class="num">5</td><td class="num">148</td><td>Needham, MA</td><td>1 year</td></tr>
+      <tr><td>SB8</td><td class="num">74,631</td><td class="num">5</td><td class="num">119</td><td>Needham, MA</td><td>1 year</td></tr>
+      <tr><td>SB9</td><td class="num">90,650</td><td class="num">5</td><td class="num">136</td><td>Needham, MA</td><td>1 year</td></tr>
+      <tr><td>SB10</td><td class="num">86,150</td><td class="num">4</td><td class="num">231</td><td>Needham, MA</td><td>1 year</td></tr>
+      <tr><td>SB11</td><td class="num">58,217</td><td class="num">4</td><td class="num">101</td><td>Needham, MA</td><td>1 year</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Related</h2>
+  <ul>
+    <li><a href="https://arxiv.org/abs/2610.18511">The Smart Buildings Challenge</a>, the NeurIPS 2026 competition built on this suite.</li>
+    <li><a href="https://github.com/google/sbsim">google/sbsim</a>, the open source simulator, with community-contributed radiative heat transfer and an RL agent platform.</li>
+  </ul>
+</section>
+
+<section id="bibtex">
+  <h2>Citation</h2>
+<pre>@inproceedings{goldfeder2026smartbuildings,
+  title     = {The Smart Buildings Control Suite: A Diverse Open Source Benchmark
+               to Evaluate and Scale HVAC Control Policies for Sustainability},
+  author    = {Goldfeder, Judah and Dean, Victoria and Jiang, Zixin and Wang, Xuezheng
+               and Dong, Bing and Lipson, Hod and Sipple, John},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS),
+               Evaluations and Datasets Track},
+  year      = {2026}
+}</pre>
+</section>
+</div>
+
+<footer>
+  Contact: <a href="mailto:jag2396@columbia.edu">jag2396@columbia.edu</a>
+</footer>
+
+</body>
+</html>
