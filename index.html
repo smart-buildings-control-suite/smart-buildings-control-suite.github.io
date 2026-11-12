@@ -164,6 +164,46 @@
   </table>
 </section>
 
+<section id="data">
+  <h2>Data &amp; documentation</h2>
+  <p>
+    The real-world data from all 11 buildings is on
+    <a href="https://huggingface.co/datasets/Jgoldfeder/smart-buildings">Hugging Face</a> under a
+    <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> license. Every building is stored at its
+    native time resolution with values exactly as recorded, together with a channel table that describes every
+    sensor and setpoint in one vocabulary across buildings. The
+    <a href="https://huggingface.co/datasets/Jgoldfeder/smart-buildings">dataset card</a> documents the format,
+    the per-building caveats and the provenance of every file.
+  </p>
+<pre>from datasets import load_dataset
+points = load_dataset("Jgoldfeder/smart-buildings", "points", split="train").to_pandas()   # channel table
+sb1    = load_dataset("Jgoldfeder/smart-buildings", "SB1_observations", split="train")      # one building</pre>
+  <p>
+    The simulator, environments and RL tooling are documented at
+    <a href="https://google.github.io/sbsim/">google.github.io/sbsim</a> (setup, API reference, contributing).
+  </p>
+</section>
+
+<section id="more">
+  <h2>More details</h2>
+  <div class="cards">
+    <div class="card">
+      <h3><a href="generator/">Building generator</a></h3>
+      <p>How synthetic buildings are generated from a seed: footprints, room partitioning, AHU assignment and
+        simulator configuration.</p>
+    </div>
+    <div class="card">
+      <h3><a href="live-trials/">Initial live trials</a></h3>
+      <p>Two trials (5 and 11 days) of a learned control agent in a real building, compared against baseline
+        control.</p>
+    </div>
+    <div class="card">
+      <h3><a href="https://google.github.io/sbsim/">Documentation</a></h3>
+      <p>Simulator and RL environment documentation: installation, API reference and contribution guide.</p>
+    </div>
+  </div>
+</section>
+
 <section id="transfer">
   <h2>Transfer across generated buildings</h2>
   <p>
