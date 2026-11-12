@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PI-ModNN building model | The Smart Buildings Control Suite</title>
+<style>
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+       color: #1d1d1f; background: #fff; line-height: 1.65; font-size: 17px; }
+.sbcs-bar { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 12px 20px;
+            background: #1d1d1f; font-size: 14px; }
+.sbcs-bar a { color: #fff; text-decoration: none; font-weight: 600; }
+main { max-width: 880px; margin: 0 auto; padding: 24px 24px 64px; }
+h1 { font-size: 34px; line-height: 1.2; margin: 24px 0 8px; }
+h2 { font-size: 24px; margin: 36px 0 10px; }
+.intro { color: #5f6368; font-size: 18px; margin-bottom: 24px; }
+figure { margin: 22px 0; text-align: center; } figure img { max-width: 100%; height: auto; border-radius: 6px; }
+figcaption { color: #5f6368; font-size: 15px; margin-top: 6px; }
+table { border-collapse: collapse; width: 100%; font-size: 15px; margin: 16px 0; }
+th, td { border-bottom: 1px solid #e3e6e4; padding: 7px 10px; text-align: left; vertical-align: top; }
+th { background: #f5f7f6; }
+.keys { background: #f5f7f6; border-radius: 12px; padding: 14px 22px; }
+a { color: #1a7f5a; }
+</style>
+</head>
+<body>
+<div class="sbcs-bar"><a href="../">&larr; The Smart Buildings Control Suite</a></div>
+<main>
+<h1>PI-ModNN: a physics-informed modular building model</h1>
+<p class="intro">
+  The suite's third component is a physics-informed modularized neural network (PI-ModNN) that learns a building's
+  thermal dynamics from data while respecting physical laws, so it can serve as a safe training environment for
+  reinforcement learning agents. This page summarizes the model, how it is evaluated, and what we found. It builds on
+  <a href="https://doi.org/10.1016/j.patter.2024.101029">Jiang &amp; Dong, <i>Patterns</i> 2024</a>, which has the full method.
+</p>
+
+<div class="keys">
+  <b>Key findings</b>
+  <ul>
+    <li>24-hour-ahead prediction error of <b>0.30&nbsp;°C</b> (MAE), on par with an LSTM (0.32&nbsp;°C).</li>
+    <li>With hard physical constraints the model has <b>zero temperature-response violations</b>: more cooling always lowers
+      temperature. The LSTM fits the data just as well but barely responds to the HVAC input, which makes it unsuitable for control.</li>
+    <li>Accuracy keeps improving with more training data, across heating and cooling seasons.</li>
+    <li>Physics priors are not automatically helpful: the hard constraint improved consistency without hurting accuracy,
+      while the knowledge-guided loss mostly did not help.</li>
+  </ul>
+</div>
+
+<h2>Framework</h2>
+<p>
+  Measured data (HVAC operation, indoor conditions, weather and occupancy) are used to train the PI-ModNN. The model is
+  checked for accuracy and physical consistency, then used as a virtual environment for offline training of a deep RL agent
+  (soft actor-critic). The trained agent is deployed in the real building through the building management system.
+</p>
+<figure><img src="img/fig1.webp" alt="Framework: testbed data feeds the PI-ModNN, which trains a soft actor-critic agent offline before online deployment" loading="lazy">
+  <figcaption>Overall PI-ModNN–DRL learning framework.</figcaption></figure>
+
+<h2>Testbed and data</h2>
+<p>
+  The testbed is a student office (maximum occupancy 10) served by a dedicated AHU–VAV system. HVAC data were collected
+  over BACnet, and space temperature, solar radiation, outdoor temperature and occupancy counts through an API, at
+  15-minute intervals from September 2022 onward. After the office was vacated in 2024, heat lamps (150&nbsp;W per
+  simulated occupant) were used to reproduce internal heat gains.
+</p>
+<figure><img src="img/fig2.webp" alt="Testbed photos: office, people-counting sensor, heat lamp, data collection" loading="lazy">
+  <figcaption>Testbed setup: (A) testbed, (B) people-counting sensor, (C) heat lamp, (D) data collection.</figcaption></figure>
+
+<h2>Model</h2>
+<p>
+  The model is a state-space time stepper that predicts space air temperature for multiple steps ahead from outdoor
+  temperature, solar radiation, time features, HVAC thermal load and past temperatures. Following the discretized heat
+  balance, separate modules estimate each heat-flow term, and a residual connection adds the learned heat input to the
+  previous state:
+</p>
+<table>
+  <tr><th>Module</th><th>Network</th><th>Role</th></tr>
+  <tr><td>External heat transfer</td><td>RNN</td><td>Envelope heat exchange; the hidden state captures thermal inertia</td></tr>
+  <tr><td>Internal heat gains</td><td>MLP</td><td>Schedule-like gains from occupants, lighting and equipment</td></tr>
+  <tr><td>HVAC</td><td>MLP</td><td>Maps control inputs to HVAC heat transfer</td></tr>
+  <tr><td>Thermal dynamics</td><td>MLP</td><td>Learns the unknown thermal capacity and integrates heat flow over time</td></tr>
+</table>
+<figure><img src="img/fig3.webp" alt="Encoder-decoder structure of the PI-ModNN with external, internal and HVAC modules" loading="lazy">
+  <figcaption>PI-ModNN structure (encoder–decoder).</figcaption></figure>
+<p>Physics enters the model in three ways:</p>
+<ul>
+  <li><b>Structure:</b> modules mirror physical heat-transfer terms, and the network learns temperature <i>changes</i> rather than static mappings.</li>
+  <li><b>Knowledge-guided loss:</b> a short-term variation term (weight 0.3) asks the model to reproduce per-step temperature changes, not just the overall trend.</li>
+  <li><b>Hard constraints:</b> the gradient of temperature with respect to control and disturbance inputs is constrained to be non-negative, so heating always warms and cooling always cools.</li>
+</ul>
+
+<h2>Evaluation</h2>
+<p>Each model is evaluated on three axes:</p>
+<ul>
+  <li><b>Accuracy:</b> mean absolute error of 24-hour (96-step) rolling predictions.</li>
+  <li><b>Physical consistency:</b> a sanity check that re-runs predictions with HVAC power at −4, −2, 0, +2 and +4&nbsp;kW and
+    accumulates any response in the wrong direction as a temperature-response violation (TRV).</li>
+  <li><b>Value of prior knowledge:</b> how much each physics prior changes accuracy and consistency (rule importance).</li>
+</ul>
+<p>
+  Five configurations were compared (an LSTM baseline and PI-ModNN with and without the loss and the constraints), each
+  trained 30 times on 7, 30, 90, 180 and 300 days of data and tested on August 2024.
+</p>
+
+<h2>Results</h2>
+<figure><img src="img/fig4.webp" alt="Box plots of MAE and temperature-response violations versus training days for five models" loading="lazy">
+  <figcaption>Model comparison across training-set sizes: (A) accuracy (MAE), (B) physical consistency (TRV).</figcaption></figure>
+<p>
+  All models are accurate, but they differ sharply in consistency. Models with hard constraints have zero violations at
+  every training-set size. The LSTM's violations grow as training data become more diverse (both seasons, varied
+  occupancy), because it learns statistical correlations rather than the underlying heat transfer.
+</p>
+<figure><img src="img/fig5.webp" alt="Predicted temperature under HVAC inputs from -4 to +4 kW for PI-ModNN and LSTM" loading="lazy">
+  <figcaption>Temperature response to HVAC inputs from −4&nbsp;kW (cooling) to +4&nbsp;kW (heating): (A) PI-ModNN responds
+    correctly; (B) the LSTM's prediction barely changes.</figcaption></figure>
+<figure><img src="img/fig6.webp" alt="Value of prior knowledge for accuracy and consistency across training days" loading="lazy">
+  <figcaption>Value of each physics prior for (A) accuracy and (B) consistency.</figcaption></figure>
+<p>
+  Physics priors mattered most for consistency. Structural priors needed enough data to pay off, the hard constraint
+  helped consistently, and the knowledge-guided loss was mostly neutral or negative. Priors therefore need to be chosen
+  and validated, not assumed beneficial.
+</p>
+
+<h2>In the benchmark</h2>
+<p>
+  In the paper, the PI-ModNN is trained on SB4 data (January 2023 to August 2024). Its modular design makes it easy
+  to adapt to new buildings: modules can be swapped (for example, an RNN HVAC module for hydronic systems with
+  thermal lag) or driven by alternative inputs when sensors are missing.
+</p>
+</main>
+</body>
+</html>

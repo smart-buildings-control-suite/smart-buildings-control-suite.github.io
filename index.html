@@ -38,7 +38,7 @@
   .stat { background: var(--soft); border-radius: 12px; padding: 18px; text-align: center; }
   .stat b { display: block; font-size: 30px; color: var(--accent); }
   .stat span { font-size: 14px; color: var(--muted); }
-  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
   .card { border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
   .card h3 { margin: 0 0 8px; font-size: 18px; }
   .card p { margin: 0; font-size: 15px; color: var(--muted); }
@@ -130,7 +130,7 @@
         3 hours and calibrated to real data (0.57&nbsp;°C mean error over a 24-hour validation day).</p>
     </div>
     <div class="card">
-      <h3>PINN building model</h3>
+      <h3><a href="modnn/">PINN building model</a></h3>
       <p>A modular, physics-informed neural network that respects physical laws, e.g. more cooling always lowers
         temperature. 0.3&nbsp;°C MAE on 24-hour predictions.</p>
     </div>
@@ -187,6 +187,10 @@ sb1    = load_dataset("Jgoldfeder/smart-buildings", "SB1_observations", split="t
 <section id="more">
   <h2>More details</h2>
   <div class="cards">
+    <div class="card">
+      <h3><a href="modnn/">PI-ModNN building model</a></h3>
+      <p>The physics-informed modular neural network: structure, physical-consistency evaluation and results.</p>
+    </div>
     <div class="card">
       <h3><a href="generator/">Building generator</a></h3>
       <p>How synthetic buildings are generated from a seed: footprints, room partitioning, AHU assignment and
