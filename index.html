@@ -49,6 +49,11 @@
   pre { background: var(--soft); padding: 18px; border-radius: 10px; overflow-x: auto; font-size: 13.5px; line-height: 1.5; }
   a { color: var(--accent); }
   a:hover { color: var(--accent-dark); }
+  .videos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin: 20px 0 4px; }
+  .videos figure { margin: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--soft); }
+  .videos video { width: 100%; max-height: 520px; display: block; background: #000; }
+  .videos figcaption { font-size: 14px; color: var(--muted); padding: 8px 12px; }
+  @media (max-width: 720px) { .videos { grid-template-columns: 1fr; } }
   footer { text-align: center; color: var(--muted); font-size: 14px; padding: 32px 0 48px; border-top: 1px solid var(--border); }
   @media (max-width: 720px) {
     h1 { font-size: 30px; } .subtitle { font-size: 18px; }
@@ -157,6 +162,26 @@
       <tr><td>SB11</td><td class="num">58,217</td><td class="num">4</td><td class="num">101</td><td>Needham, MA</td><td>1 year</td></tr>
     </tbody>
   </table>
+</section>
+
+<section id="transfer">
+  <h2>Transfer across generated buildings</h2>
+  <p>
+    A floorplan generator produces unlimited synthetic buildings, each with its own number of floors, ACs and
+    boilers, and HVAC layout. We simulated 18 generated buildings (plus 3 reference offices) under 6 weather
+    scenarios, from cold winter to tropical, and compared three baseline policies (all off, all on, and bang-bang)
+    to show how the simulator behaves under extreme variation.
+  </p>
+  <div class="videos">
+    <figure><video src="animations/building_0007_cold_winter_bang_bang.mp4" poster="animations/building_0007_cold_winter_bang_bang.jpg"
+      controls muted loop playsinline preload="none"></video><figcaption>Generated building 0007, cold winter</figcaption></figure>
+    <figure><video src="animations/building_0042_temperate_bang_bang.mp4" poster="animations/building_0042_temperate_bang_bang.jpg"
+      controls muted loop playsinline preload="none"></video><figcaption>Generated building 0042, temperate</figcaption></figure>
+  </div>
+  <div class="buttons">
+    <a class="btn" href="results/">📈 Policy results for every building</a>
+    <a class="btn" href="animations/">🎞️ All simulation animations</a>
+  </div>
 </section>
 
 <section>
